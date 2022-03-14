@@ -17,6 +17,9 @@ fn main() {
 #[derive(Component)]
 struct Controllable;
 
+#[derive(Component, Default)]
+struct Velocity(Vec2);
+
 #[derive(Component)]
 struct Acceleration(f32);
 
@@ -66,7 +69,7 @@ fn spawn_player(mut commands: Commands) {
         .insert(Controllable)
         .insert_bundle(sprite_bundle)
         .insert(Acceleration(0.4))
-        .insert(Vel::default())
+        .insert(Velocity::default())
         .add_child(sensor);
 }
 
@@ -107,7 +110,7 @@ fn hitbox_system(mut q: Query<(&Sensor, &mut Sprite), With<HitBox>>) {
 }
 
 /// Applies velocity to transform, then applies bad friction
-fn apply_velocity(mut velocity_query: Query<(&mut Transform, &mut Vel)>, time: Res<Time>) {
+fn apply_velocity(mut velocity_query: Query<(&mut Transform, &mut Velocity)>, time: Res<Time>) {
     for (mut transform, mut velocity) in velocity_query.iter_mut() {
         transform.translation += velocity.0.extend(0.);
         velocity.0 *= 1. - (time.delta_seconds() * 10.); // bad friction
@@ -118,7 +121,7 @@ fn apply_velocity(mut velocity_query: Query<(&mut Transform, &mut Vel)>, time: R
 fn player_move_input(
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
-    mut player_query: Query<(&mut Vel, &Acceleration), With<Controllable>>,
+    mut player_query: Query<(&mut Velocity, &Acceleration), With<Controllable>>,
 ) {
     let mut direction = Vec2::ZERO;
     if keys.any_pressed([KeyCode::Up, KeyCode::W]) {
